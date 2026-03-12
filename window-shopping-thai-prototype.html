@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1">
+<title>Window Shopping – Sweetgreen</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  }
+  .phone {
+    width: 375px;
+    background: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    height: 44px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+  }
+  .status-time {
+    font-size: 15px;
+    font-weight: 600;
+    color: #191919;
+    letter-spacing: -0.3px;
+  }
+  .status-icons { display: flex; align-items: center; gap: 6px; }
+
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    background: #fff;
+    padding: 4px 16px;
+    flex-shrink: 0;
+  }
+  .search-pill {
+    background: #f7f7f7;
+    border-radius: 24px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 12px;
+  }
+  .search-icon { width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; }
+  .search-icon img { width: 100%; height: 100%; object-fit: contain; }
+  .search-text { flex: 1; font-size: 16px; font-weight: 500; color: #191919; }
+  .clear-icon { width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; }
+  .clear-icon img { width: 100%; height: 100%; object-fit: contain; }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: #fff;
+    padding: 12px 16px 0;
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid #e7e7e7;
+    flex-shrink: 0;
+  }
+  .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 8px; cursor: pointer; }
+  .nav-tab-label { font-size: 14px; font-weight: 500; color: #494949; line-height: 24px; white-space: nowrap; }
+  .nav-tab.sel .nav-tab-label { color: #191919; font-weight: 700; }
+  .nav-tab-bar { height: 3px; width: 100%; background: transparent; border-radius: 8px 8px 0 0; }
+  .nav-tab.sel .nav-tab-bar { background: #191919; }
+
+  /* ── SCROLL CONTENT ── */
+  .scroll-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 86px; }
+
+  /* ── PILL FILTERS ── */
+  .pill-row {
+    background: #fff;
+    padding: 8px 16px 4px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .pill-row::-webkit-scrollbar { display: none; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+    padding: 4px 12px;
+    border: 1px solid #d6d6d6;
+    border-radius: 200px;
+    background: #fff;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .pill-lbl { font-size: 14px; font-weight: 500; color: #191919; line-height: 20px; }
+  .pill-ic { width: 16px; height: 16px; display: flex; align-items: center; }
+  .pill-ic img { width: 100%; height: 100%; object-fit: contain; }
+  .pill-chev { width: 14px; height: 14px; display: flex; align-items: center; }
+  .pill-chev img { width: 100%; height: 100%; object-fit: contain; }
+
+  /* Swipeable image carousel (More Options) */
+  .swipe-carousel { position: relative; margin-bottom: 10px; }
+  .swipe-track {
+    display: flex;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .swipe-track::-webkit-scrollbar { display: none; }
+  .swipe-track img {
+    width: 100%;
+    height: 205px;
+    object-fit: cover;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    display: block;
+  }
+  .swipe-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    pointer-events: none;
+  }
+  .swipe-dot {
+    height: 5px;
+    width: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.5);
+    transition: width 0.2s, background 0.2s;
+  }
+  .swipe-dot.active { width: 16px; background: rgba(255,255,255,0.95); }
+
+  .store-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .store-name-left { display: flex; align-items: center; gap: 4px; }
+  .dp-ic { width: 16px; height: 16px; }
+  .dp-ic img { width: 100%; height: 100%; object-fit: contain; }
+  .store-name { font-size: 16px; font-weight: 700; color: #191919; letter-spacing: -0.01px; }
+  .heart-btn { width: 18px; height: 18px; cursor: pointer; opacity: 0.45; }
+  .store-stats {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 8px;
+  }
+  .stat-txt { font-size: 13px; font-weight: 500; color: #606060; line-height: 20px; }
+  .stat-dot { font-size: 13px; color: #606060; padding: 0 1px; }
+
+  /* Dish scroll row — shows peek of 2nd item */
+  .dish-scroll-row {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 10px;
+    padding-top: 8px;
+  }
+  .dish-scroll-row::-webkit-scrollbar { display: none; }
+  .dish-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    width: 268px;
+  }
+  .dish-item + .dish-item { border-left: 1px solid #f0f0f0; padding-left: 10px; }
+  .feat-dish-thumb {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #e8dcc6;
+    flex-shrink: 0;
+  }
+  .feat-dish-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .feat-dish-info { flex: 1; min-width: 0; }
+  .feat-dish-name { font-size: 14px; font-weight: 500; color: #191919; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feat-dish-price { font-size: 13px; font-weight: 500; color: #606060; line-height: 18px; }
+  .add-btn-inline {
+    width: 30px; height: 30px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(25,25,25,0.1);
+  }
+
+  /* ── DIVIDER ── */
+  .hairline { height: 1px; background: #e7e7e7; margin: 0 16px; }
+  .full-hairline { height: 1px; background: #e7e7e7; }
+  .section-gap { height: 8px; background: #f7f7f7; }
+
+  /* ── SIMILAR SPOTS SECTION ── */
+  .similar-header {
+    padding: 16px 16px 2px;
+  }
+  .similar-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #191919;
+    line-height: 24px;
+    letter-spacing: -0.01px;
+  }
+
+  /* Italic subtitle before each restaurant */
+  .similar-subtitle {
+    padding: 10px 16px 8px;
+    font-size: 14px;
+    font-weight: 400;
+    font-style: italic;
+    color: #606060;
+    line-height: 20px;
+  }
+
+  /* Restaurant card within similar spots */
+  .restaurant-card {
+    padding: 0 16px 14px;
+  }
+  .restaurant-card .hero-img {
+    width: 100%;
+    height: 205px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #e8dcc6;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .restaurant-card .hero-img img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+
+  /* ── IS THERE A SPECIFIC TYPE section ── */
+  .question-section {
+    padding: 16px 16px 12px;
+    border-top: 1px solid #e7e7e7;
+  }
+  .question-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: #191919;
+    line-height: 22px;
+    letter-spacing: -0.01px;
+    margin-bottom: 12px;
+  }
+  .suggestion-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .suggestion-chip {
+    padding: 6px 14px;
+    border: 1px solid #d6d6d6;
+    border-radius: 200px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #191919;
+    line-height: 18px;
+    cursor: pointer;
+    background: #fff;
+    white-space: nowrap;
+  }
+
+  /* ── MORE OPTIONS SECTION ── */
+  .more-options-header { padding: 16px 16px 8px; }
+  .more-options-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #191919;
+    line-height: 24px;
+    letter-spacing: -0.01px;
+  }
+
+  /* Tag badge on restaurant card */
+  .tag-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 18px;
+    letter-spacing: -0.01px;
+    margin-top: 4px;
+  }
+  .tag-green { background: #fde8e6; color: #eb1700; }
+  .tag-blue  { background: #e8f4fb; color: #006eb7; }
+  .tag-promo { background: #fff3e0; color: #d65e00; }
+
+  /* "Further away" muted badge */
+  .away-badge {
+    font-size: 12px;
+    font-weight: 500;
+    color: #606060;
+    background: #f7f7f7;
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+
+  /* ── TAB BAR ── */
+  .tab-bar {
+    position: fixed;
+    bottom: 0;
+    width: 375px;
+    background: #fff;
+    border-top: 1px solid #e7e7e7;
+    z-index: 100;
+  }
+  .tab-items {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 6px 12px 0;
+    height: 56px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; min-width: 50px; }
+  .tab-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+  .tab-icon img { width: 100%; height: 100%; object-fit: contain; }
+  .tab-lbl { font-size: 11px; font-weight: 500; color: #494949; letter-spacing: 0.1px; }
+  .tab-item.active .tab-lbl { color: #eb1700; }
+  .home-ind { display: flex; justify-content: center; padding: 8px 0 4px; }
+  .home-ind-bar { width: 134px; height: 5px; background: #191919; border-radius: 100px; }
+
+  /* Shared add button SVG */
+  .plus-svg { display: flex; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-time">11:50</span>
+    <div class="status-icons">
+      <svg width="18" height="11" viewBox="0 0 18 11" fill="#191919">
+        <rect x="0" y="5.5" width="3" height="5.5" rx="0.8"/>
+        <rect x="4.5" y="3.5" width="3" height="7.5" rx="0.8"/>
+        <rect x="9"   y="1.5" width="3" height="9.5" rx="0.8"/>
+        <rect x="13.5" y="0"  width="3" height="11" rx="0.8" opacity="0.35"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <path d="M8 3C10.1 3 12 3.8 13.4 5.2L14.8 3.8C13 2 10.6 1 8 1S3 2 1.2 3.8L2.6 5.2C4 3.8 5.9 3 8 3Z" fill="#191919"/>
+        <path d="M8 6C9.4 6 10.6 6.6 11.5 7.5L12.9 6.1C11.6 4.8 9.9 4 8 4S4.4 4.8 3.1 6.1L4.5 7.5C5.4 6.6 6.6 6 8 6Z" fill="#191919"/>
+        <circle cx="8" cy="10.5" r="1.5" fill="#191919"/>
+      </svg>
+      <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
+        <rect x="0.5" y="0.5" width="22" height="11" rx="3.5" stroke="#191919" stroke-opacity="0.35"/>
+        <rect x="2" y="2" width="18" height="8" rx="2" fill="#191919"/>
+        <path d="M24 4v4c.9-.3 1.5-1 1.5-2s-.6-1.7-1.5-2Z" fill="#191919" fill-opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div class="search-wrap">
+    <div class="search-pill">
+      <div class="search-icon">
+        <img src="https://www.figma.com/api/mcp/asset/5fe63b2b-1a3d-4901-9786-7a557b3197ee" alt="back">
+      </div>
+      <span class="search-text">Sweetgreen</span>
+      <div class="clear-icon">
+        <img src="https://www.figma.com/api/mcp/asset/88fbd6db-3af1-4daa-b3f5-a21106ddd429" alt="clear">
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <div class="nav-tab sel">
+      <span class="nav-tab-label">All</span>
+      <div class="nav-tab-bar"></div>
+    </div>
+    <div class="nav-tab">
+      <span class="nav-tab-label">Restaurant</span>
+      <div class="nav-tab-bar"></div>
+    </div>
+    <div class="nav-tab">
+      <span class="nav-tab-label">Grocery</span>
+      <div class="nav-tab-bar"></div>
+    </div>
+  </div>
+
+  <!-- SCROLL CONTENT -->
+  <div class="scroll-content">
+
+    <!-- PILL FILTERS -->
+    <div class="pill-row">
+      <div class="pill">
+        <div class="pill-ic"><img src="https://www.figma.com/api/mcp/asset/fabe10e0-4912-4882-9c53-5b5439020f9b" alt=""></div>
+        <span class="pill-lbl">DashPass</span>
+      </div>
+      <div class="pill">
+        <div class="pill-ic"><img src="https://www.figma.com/api/mcp/asset/409ecc3c-7343-4161-a9d2-1cbb899ac031" alt=""></div>
+        <span class="pill-lbl">Deals</span>
+      </div>
+      <div class="pill">
+        <div class="pill-ic"><img src="https://www.figma.com/api/mcp/asset/7a711425-4c64-419e-ad8e-13ef5861001f" alt=""></div>
+        <span class="pill-lbl">Ratings</span>
+        <div class="pill-chev"><img src="https://www.figma.com/api/mcp/asset/e3f9b89a-afeb-42d0-ac58-d08ed00aa22c" alt=""></div>
+      </div>
+      <div class="pill"><span class="pill-lbl">Under 30 min</span></div>
+      <div class="pill"><span class="pill-lbl">Menu Price</span>
+        <div class="pill-chev"><img src="https://www.figma.com/api/mcp/asset/e3f9b89a-afeb-42d0-ac58-d08ed00aa22c" alt=""></div>
+      </div>
+    </div>
+
+    <!-- ══ FEATURED SWEETGREEN CARD ══ -->
+    <div class="restaurant-card" style="padding-top:12px;">
+      <div class="hero-img">
+        <img src="https://www.figma.com/api/mcp/asset/c9032885-8891-44d2-96a4-7c82b422e9fb" alt="Sweetgreen">
+      </div>
+      <div class="store-name-row">
+        <span class="store-name">Sweetgreen</span>
+        <svg class="heart-btn" viewBox="0 0 18 18" fill="none" stroke="#191919" stroke-width="1.3">
+          <path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z"/>
+        </svg>
+      </div>
+      <div class="store-stats">
+        <span class="stat-txt">4.7</span>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="#191919">
+          <path d="M6.5 1l1.3 3.8H12L8.9 6.9l1.2 3.7-3.6-2.4-3.6 2.4 1.2-3.7L1 4.8h4.2z"/>
+        </svg>
+        <span class="stat-txt">(431)</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">34 min</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">1.2 mi</span>
+      </div>
+      <div class="dish-scroll-row">
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/c9032885-8891-44d2-96a4-7c82b422e9fb" alt="Salmon Bowl"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">Salmon Bowl</div><div class="feat-dish-price">$24.99</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/2431b11a-00fb-4ac5-8b06-bada6e3a4487" alt="Harvest Bowl"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">Harvest Bowl</div><div class="feat-dish-price">$17.25</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="full-hairline"></div>
+    <div class="section-gap"></div>
+
+    <!-- ══ SIMILAR SPOTS ══ -->
+    <div class="similar-header">
+      <div class="similar-title">Similar spots you might like</div>
+    </div>
+
+    <!-- ── MIXT ── -->
+    <div class="similar-subtitle">Same build-your-own concept as Sweetgreen, but with bigger portions and more protein options</div>
+    <div class="restaurant-card">
+      <div class="hero-img">
+        <img src="https://www.figma.com/api/mcp/asset/4b5541f1-2a5c-4235-897f-db455429b3bc" alt="Mixt">
+      </div>
+      <div class="store-name-row">
+        <span class="store-name">Mixt</span>
+        <svg class="heart-btn" viewBox="0 0 18 18" fill="none" stroke="#191919" stroke-width="1.3">
+          <path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z"/>
+        </svg>
+      </div>
+      <div class="store-stats">
+        <span class="stat-txt">4.7</span>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="#191919">
+          <path d="M6.5 1l1.3 3.8H12L8.9 6.9l1.2 3.7-3.6-2.4-3.6 2.4 1.2-3.7L1 4.8h4.2z"/>
+        </svg>
+        <span class="stat-txt">(437)</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">28 min</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">1.2 mi</span>
+      </div>
+      <div class="dish-scroll-row">
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/dbc2338b-7d94-47d5-8fa2-354b497fbddf" alt="Design salad"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">Design salad</div><div class="feat-dish-price">$19.99</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/a9fdbef2-f918-475f-bdda-975e0a36dcd9" alt="Kale Caesar"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">Kale Caesar</div><div class="feat-dish-price">$16.99</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SOUVLA ── -->
+    <div class="full-hairline"></div>
+    <div class="similar-subtitle">Like Sweetgreen but with a Mediterranean spin — warm rotisserie meats over fresh greens</div>
+    <div class="restaurant-card">
+      <div class="hero-img">
+        <img src="https://www.figma.com/api/mcp/asset/b452bb25-21bf-4a1d-8425-0149cc00a67a" alt="Souvla">
+      </div>
+      <div class="store-name-row">
+        <span class="store-name">Souvla</span>
+        <svg class="heart-btn" viewBox="0 0 18 18" fill="none" stroke="#191919" stroke-width="1.3">
+          <path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z"/>
+        </svg>
+      </div>
+      <div class="store-stats">
+        <span class="stat-txt">4.7</span>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="#191919">
+          <path d="M6.5 1l1.3 3.8H12L8.9 6.9l1.2 3.7-3.6-2.4-3.6 2.4 1.2-3.7L1 4.8h4.2z"/>
+        </svg>
+        <span class="stat-txt">(436)</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">26 min</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">1.2 mi</span>
+      </div>
+      <div class="dish-scroll-row">
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/a9fdbef2-f918-475f-bdda-975e0a36dcd9" alt="Chicken Salad"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">Chicken Salad</div><div class="feat-dish-price">$11.00</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/e8252442-a78a-49c4-baed-3a2377b2edb8" alt="Lamb Pita"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">Lamb Pita</div><div class="feat-dish-price">$13.50</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BEN'S FAST FOOD ── -->
+    <div class="full-hairline"></div>
+    <div class="similar-subtitle">Same fresh salad concept as Sweetgreen, but larger portions at nearly half the price</div>
+    <div class="restaurant-card">
+      <div class="hero-img">
+        <img src="https://www.figma.com/api/mcp/asset/dbc2338b-7d94-47d5-8fa2-354b497fbddf" alt="Ben's Fast Food">
+      </div>
+      <div class="store-name-row">
+        <span class="store-name">Ben's Fast Food</span>
+        <svg class="heart-btn" viewBox="0 0 18 18" fill="none" stroke="#191919" stroke-width="1.3">
+          <path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z"/>
+        </svg>
+      </div>
+      <div class="store-stats">
+        <span class="stat-txt">4.7</span>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="#191919">
+          <path d="M6.5 1l1.3 3.8H12L8.9 6.9l1.2 3.7-3.6-2.4-3.6 2.4 1.2-3.7L1 4.8h4.2z"/>
+        </svg>
+        <span class="stat-txt">(438)</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">28 min</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">1.2 mi</span>
+      </div>
+      <div class="dish-scroll-row">
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/e8252442-a78a-49c4-baed-3a2377b2edb8" alt="Chicken Salad"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">Chicken Salad</div><div class="feat-dish-price">$10.99</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="dish-item">
+          <div class="feat-dish-thumb"><img src="https://www.figma.com/api/mcp/asset/c9032885-8891-44d2-96a4-7c82b422e9fb" alt="House Salad"></div>
+          <div class="feat-dish-info"><div class="feat-dish-name">House Salad</div><div class="feat-dish-price">$8.99</div></div>
+          <div class="add-btn-inline"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#191919" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="full-hairline"></div>
+
+    <!-- ══ IS THERE A SPECIFIC TYPE ══ -->
+    <div class="question-section">
+      <div class="question-text">Is there a specific type of salad you're in the mood for?</div>
+      <div class="suggestion-grid">
+        <div class="suggestion-chip">salad with a lot of protein</div>
+        <div class="suggestion-chip">salad under $15</div>
+        <div class="suggestion-chip">something healthy that isn't a salad</div>
+        <div class="suggestion-chip">taco salad</div>
+      </div>
+    </div>
+
+    <div class="full-hairline"></div>
+    <div class="section-gap"></div>
+
+    <!-- ══ MORE OPTIONS ══ -->
+    <div class="more-options-header">
+      <div class="more-options-title">More options</div>
+    </div>
+
+    <!-- Fiorella -->
+    <div class="restaurant-card">
+      <div class="swipe-carousel">
+        <div class="swipe-track" id="track-fiorella">
+          <img src="https://www.figma.com/api/mcp/asset/2d14e77b-de33-4ef3-926d-56f8e95fa323" alt="Fiorella 1">
+          <img src="https://www.figma.com/api/mcp/asset/100e73bb-2751-4534-99c7-03d0e3a18598" alt="Fiorella 2">
+          <img src="https://www.figma.com/api/mcp/asset/0e4ef3e7-fc8a-4540-8943-a6dc1acd780e" alt="Fiorella 3">
+        </div>
+        <div class="swipe-dots">
+          <span class="swipe-dot active"></span>
+          <span class="swipe-dot"></span>
+          <span class="swipe-dot"></span>
+        </div>
+      </div>
+      <div class="store-name-row">
+        <span class="store-name">Fiorella</span>
+        <svg class="heart-btn" viewBox="0 0 18 18" fill="none" stroke="#191919" stroke-width="1.3">
+          <path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z"/>
+        </svg>
+      </div>
+      <div class="store-stats">
+        <span class="stat-txt">4.7</span>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="#191919">
+          <path d="M6.5 1l1.3 3.8H12L8.9 6.9l1.2 3.7-3.6-2.4-3.6 2.4 1.2-3.7L1 4.8h4.2z"/>
+        </svg>
+        <span class="stat-txt">(10+)</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">6.0 mi</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">28 min</span>
+      </div>
+    </div>
+
+    <!-- Thai Chili Cuisine -->
+    <div class="restaurant-card" style="padding-bottom: 20px;">
+      <div class="swipe-carousel">
+        <div class="swipe-track" id="track-thai">
+          <img src="https://www.figma.com/api/mcp/asset/573d8016-0c06-47b0-9a56-574566a7db6f" alt="Thai Chili 1">
+          <img src="https://www.figma.com/api/mcp/asset/3e1e9214-f66f-4806-84de-09813ae5cfa0" alt="Thai Chili 2">
+          <img src="https://www.figma.com/api/mcp/asset/0f27d14f-3989-4169-b47d-ac1b93e69f1c" alt="Thai Chili 3">
+        </div>
+        <div class="swipe-dots">
+          <span class="swipe-dot active"></span>
+          <span class="swipe-dot"></span>
+          <span class="swipe-dot"></span>
+        </div>
+      </div>
+      <div class="store-name-row">
+        <span class="store-name">Thai Chili Cuisine</span>
+        <svg class="heart-btn" viewBox="0 0 18 18" fill="none" stroke="#191919" stroke-width="1.3">
+          <path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z"/>
+        </svg>
+      </div>
+      <div class="away-badge">Further away</div>
+      <div class="store-stats">
+        <span class="stat-txt">4.7</span>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="#191919">
+          <path d="M6.5 1l1.3 3.8H12L8.9 6.9l1.2 3.7-3.6-2.4-3.6 2.4 1.2-3.7L1 4.8h4.2z"/>
+        </svg>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">1.0 mi</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-txt">49 min</span>
+      </div>
+      <div>
+        <span class="tag-badge tag-green">Buy 1 get 1 free</span>
+      </div>
+    </div>
+
+  </div><!-- end scroll-content -->
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="tab-items">
+      <div class="tab-item active">
+        <div class="tab-icon">
+          <img src="https://www.figma.com/api/mcp/asset/cdbd87f0-0565-4cb4-9631-43775c711fea" alt="Home"
+            style="filter:invert(15%)sepia(100%)saturate(6000%)hue-rotate(354deg)brightness(85%)contrast(120%);">
+        </div>
+        <span class="tab-lbl" style="color:#eb1700;">Home</span>
+      </div>
+      <div class="tab-item">
+        <div class="tab-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#494949" stroke-width="1.5">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+        </div>
+        <span class="tab-lbl">Grocery</span>
+      </div>
+      <div class="tab-item">
+        <div class="tab-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#494949" stroke-width="1.5">
+            <path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1z"/>
+            <path d="M16 7V5a2 2 0 00-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+          </svg>
+        </div>
+        <span class="tab-lbl">Retail</span>
+      </div>
+      <div class="tab-item">
+        <div class="tab-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#494949" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+        </div>
+        <span class="tab-lbl">Browse</span>
+      </div>
+      <div class="tab-item">
+        <div class="tab-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#494949" stroke-width="1.5">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/>
+          </svg>
+        </div>
+        <span class="tab-lbl">Orders</span>
+      </div>
+    </div>
+    <div class="home-ind"><div class="home-ind-bar"></div></div>
+  </div>
+
+</div>
+<script>
+  document.querySelectorAll('.swipe-track').forEach(track => {
+    const dots = track.closest('.swipe-carousel').querySelectorAll('.swipe-dot');
+    track.addEventListener('scroll', () => {
+      const idx = Math.round(track.scrollLeft / track.clientWidth);
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    });
+  });
+</script>
+</body>
+</html>
