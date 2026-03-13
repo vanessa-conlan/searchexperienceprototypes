@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DoorDash — Healthy Search Prototype</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+    body {
+      background: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Inter', sans-serif;
+    }
+
+    /* ── Phone shell ─────────────────────────────────── */
+    .phone {
+      width: 375px;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ── Layers ──────────────────────────────────────── */
+    .header {
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 86px;
+    }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      width: 375px;
+      height: 86px;
+      background: #fff;
+      z-index: 20;
+      box-shadow: inset 0 1px 0 #e7e7e7;
+    }
+
+    /* ── Status bar ──────────────────────────────────── */
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .status-time {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: #191919;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Search bar ──────────────────────────────────── */
+    .search-row {
+      height: 60px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-field {
+      flex: 1;
+      height: 48px;
+      background: #f7f7f7;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 10px;
+    }
+
+    .search-text {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 500;
+      color: #191919;
+    }
+
+    /* ── Nav tabs ────────────────────────────────────── */
+    .nav-tabs {
+      height: 39px;
+      padding: 10px 16px 0;
+      display: flex;
+      gap: 0;
+      align-items: flex-end;
+      border-bottom: 1px solid #e7e7e7;
+    }
+
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 0 8px 0;
+      cursor: pointer;
+    }
+
+    .tab-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #494949;
+      line-height: 1;
+    }
+
+    .tab.active .tab-label { font-weight: 700; color: #191919; }
+    .tab-underline {
+      height: 3px;
+      width: 100%;
+      background: #191919;
+      border-radius: 3px 3px 0 0;
+    }
+    .tab:not(.active) .tab-underline { background: transparent; }
+
+    /* ── Filter pills ────────────────────────────────── */
+    .pill-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 8px 16px 6px;
+      background: #fff;
+    }
+    .pill-strip::-webkit-scrollbar { display: none; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid #d6d6d6;
+      border-radius: 200px;
+      background: white;
+      font-size: 14px;
+      font-weight: 500;
+      color: #191919;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .pill img { width: 18px; height: 18px; object-fit: contain; }
+
+    /* ── Section row (go-to) ─────────────────────────── */
+    .section-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #191919;
+    }
+
+    /* ── Mini reorder cards ──────────────────────────── */
+    .mini-cards-strip {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 16px 16px;
+    }
+    .mini-cards-strip::-webkit-scrollbar { display: none; }
+
+    .mini-card {
+      width: 122px;
+      flex-shrink: 0;
+      border: 1px solid #e7e7e7;
+      border-radius: 12px;
+      padding: 9px;
+      background: white;
+    }
+
+    .mini-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .mini-logo {
+      width: 22px;
+      height: 22px;
+      background: #f1f1f1;
+      border-radius: 4px;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mini-store-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #191919;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 72px;
+      line-height: 1.3;
+    }
+
+    .mini-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #eb1700;
+      line-height: 1.3;
+    }
+
+    .mini-imgs {
+      position: relative;
+      height: 44px;
+      margin-bottom: 8px;
+    }
+
+    .mini-img {
+      position: absolute;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f1f1f1;
+      border: 2px solid white;
+    }
+
+    .mini-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .mini-btn {
+      width: 100%;
+      height: 24px;
+      border: 1px solid #d6d6d6;
+      border-radius: 200px;
+      background: white;
+      font-size: 12px;
+      font-weight: 500;
+      color: #191919;
+      cursor: pointer;
+    }
+
+    /* ── Divider ─────────────────────────────────────── */
+    .divider { height: 1px; background: #e7e7e7; }
+    .thick-divider {
+      height: 8px;
+      background: #f7f7f7;
+      border-top: 1px solid #e4e4e4;
+      border-bottom: 1px solid #e4e4e4;
+    }
+    .thin-divider {
+      height: 1px;
+      background: #e4e4e4;
+      margin: 0 16px;
+    }
+
+    /* ── AI panel ────────────────────────────────────── */
+    .ai-panel { background: white; }
+
+    .drag-handle-row {
+      display: flex;
+      justify-content: center;
+      padding: 10px 0 6px;
+    }
+    .drag-handle {
+      width: 36px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 4px;
+    }
+
+    .ai-reason {
+      font-size: 14px;
+      font-weight: 400;
+      font-style: italic;
+      color: #606060;
+      line-height: 20px;
+      padding: 10px 16px 8px;
+    }
+
+    .ai-reason strong { font-weight: 600; font-style: italic; }
+
+    .hero-img {
+      margin: 0 16px;
+      height: 205px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f1f1f1;
+      position: relative;
+    }
+
+    .hero-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .store-meta {
+      padding: 8px 16px 0;
+    }
+
+    .store-name-lg {
+      font-size: 16px;
+      font-weight: 700;
+      color: #191919;
+    }
+
+    .store-row2 {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-top: 2px;
+    }
+
+    .rating-num { font-size: 13px; font-weight: 500; color: #606060; }
+    .meta-text { font-size: 13px; font-weight: 500; color: #606060; }
+    .dot { font-size: 13px; color: #606060; padding: 0 1px; }
+
+    /* ── Item row (scrollable) ───────────────────────── */
+    .item-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 8px 0 14px 16px;
+    }
+    .item-strip::-webkit-scrollbar { display: none; }
+
+    .dish-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      width: 268px;
+    }
+
+    .dish-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f1f1f1;
+      flex-shrink: 0;
+    }
+
+    .dish-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .dish-info { flex: 1; min-width: 0; }
+
+    .dish-name {
+      font-size: 14px;
+      color: #191919;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dish-price { font-size: 14px; color: #606060; }
+
+    .add-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: white;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 1px 4px rgba(25,25,25,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* ── Refine chips ────────────────────────────────── */
+    .refine-section { padding: 4px 16px 12px; }
+    .refine-label {
+      font-size: 16px;
+      font-weight: 500;
+      color: #191919;
+      line-height: 22px;
+      margin-bottom: 12px;
+    }
+    .refine-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 4px;
+    }
+    .chip {
+      background: white;
+      border-radius: 200px;
+      border: 1px solid #d6d6d6;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #191919;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* ── "More options" header ───────────────────────── */
+    .more-options-header {
+      padding: 14px 16px 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #191919;
+    }
+
+    /* ── Fiorella / store list cards ─────────────────── */
+    .store-card {
+      padding: 0 16px 16px;
+    }
+
+    .store-card-img-wrap {
+      width: 343px;
+      height: 205px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f1f1f1;
+      position: relative;
+    }
+
+    .store-card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .dot-pager {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      background: rgba(0,0,0,0.15);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      padding: 7px 8px;
+      border-radius: 16px;
+    }
+
+    .dot-active, .dot-inactive {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .dot-active { background: white; }
+    .dot-inactive { background: rgba(255,255,255,0.5); }
+
+    .store-info {
+      margin-top: 8px;
+    }
+
+    .store-info-row1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .store-name-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .store-name-lg2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #191919;
+    }
+
+    .badge-red {
+      display: inline-block;
+      background: #fef0f0;
+      color: #eb1700;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .badge-gray {
+      display: inline-block;
+      background: #f1f1f1;
+      color: #606060;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .sponsored {
+      font-size: 12px;
+      color: #606060;
+    }
+
+    /* ── More options carousel ───────────────────────── */
+    .more-options-carousel {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 0 16px 16px;
+    }
+    .more-options-carousel::-webkit-scrollbar { display: none; }
+
+    .more-option-card {
+      width: 240px;
+      flex-shrink: 0;
+    }
+
+    .more-option-img {
+      width: 240px;
+      height: 136px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f1f1f1;
+      position: relative;
+    }
+
+    .more-option-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Tab bar ─────────────────────────────────────── */
+    .tab-bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 12px 0;
+      height: 66px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 8px;
+      cursor: pointer;
+    }
+
+    .nav-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #494949;
+      letter-spacing: 0.12px;
+    }
+
+    .nav-item.active .nav-label { color: #eb1700; }
+
+    .home-indicator {
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-bar {
+      width: 134px;
+      height: 5px;
+      background: #191919;
+      border-radius: 100px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ════════════════════ HEADER ════════════════════ -->
+  <div class="header">
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">11:50</span>
+      <div class="status-icons">
+        <!-- Signal bars -->
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+          <rect x="0" y="7" width="3" height="5" rx="1" fill="#191919"/>
+          <rect x="4.5" y="5" width="3" height="7" rx="1" fill="#191919"/>
+          <rect x="9" y="2.5" width="3" height="9.5" rx="1" fill="#191919"/>
+          <rect x="13.5" y="0" width="3" height="12" rx="1" fill="#191919"/>
+        </svg>
+        <!-- Wifi -->
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+          <path d="M8 9.5C8.83 9.5 9.5 10.17 9.5 11S8.83 12.5 8 12.5 6.5 11.83 6.5 11 7.17 9.5 8 9.5Z" fill="#191919"/>
+          <path d="M4.5 7.5C5.5 6.4 6.7 5.8 8 5.8S10.5 6.4 11.5 7.5" stroke="#191919" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <path d="M2 5C3.5 3.3 5.6 2.3 8 2.3S12.5 3.3 14 5" stroke="#191919" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <path d="M0 2.5C2 0.8 4.8 0 8 0S14 0.8 16 2.5" stroke="#191919" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <!-- Battery -->
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+          <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#191919" stroke-opacity="0.35"/>
+          <rect x="22" y="3.5" width="2.5" height="5" rx="1.25" fill="#191919" fill-opacity="0.4"/>
+          <rect x="2" y="2" width="17" height="8" rx="2" fill="#191919"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Search Row -->
+    <div class="search-row">
+      <div class="search-field">
+        <!-- Back arrow -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" flex-shrink="0" style="flex-shrink:0">
+          <path d="M15 18l-6-6 6-6" stroke="#191919" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="search-text">Healthy</span>
+        <!-- Clear -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+          <circle cx="12" cy="12" r="9" fill="#a0a0a0"/>
+          <path d="M9 9l6 6M15 9l-6 6" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Nav Tabs -->
+    <div class="nav-tabs">
+      <div class="tab active">
+        <span class="tab-label">All</span>
+        <div class="tab-underline"></div>
+      </div>
+      <div class="tab">
+        <span class="tab-label">Restaurant</span>
+        <div class="tab-underline"></div>
+      </div>
+      <div class="tab">
+        <span class="tab-label">Grocery</span>
+        <div class="tab-underline"></div>
+      </div>
+    </div>
+
+  </div>
+  <!-- END HEADER -->
+
+
+  <!-- ════════════════════ SCROLL AREA ════════════════════ -->
+  <div class="scroll-area">
+
+    <!-- Filter Pills -->
+    <div class="pill-strip">
+      <div class="pill">DashPass</div>
+      <div class="pill">
+        <!-- Tag/deal icon -->
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8.5 1H3C1.9 1 1 1.9 1 3V8.5C1 9.05 1.22 9.58 1.59 9.95L6.05 14.41C6.83 15.19 8.08 15.19 8.86 14.41L13.41 9.86C14.19 9.08 14.19 7.83 13.41 7.05L8.95 2.59C8.58 2.22 8.05 2 7.5 2H3M4.5 5C4.5 4.72 4.72 4.5 5 4.5S5.5 4.72 5.5 5 5.28 5.5 5 5.5 4.5 5.28 4.5 5Z" stroke="#191919" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        Deals
+      </div>
+      <div class="pill">
+        <!-- Star -->
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#191919">
+          <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+        </svg>
+        Ratings
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="#191919" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="pill">Under 30 min</div>
+      <div class="pill">Pets</div>
+      <div class="pill">
+        Menu Price
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="#191919" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="pill">Group Order</div>
+    </div>
+
+
+    <!-- Reorder Your Favorites -->
+    <div class="section-row">
+      <span class="section-title">Reorder your favorites</span>
+    </div>
+
+
+    <!-- Mini Reorder Cards -->
+    <div class="mini-cards-strip">
+
+      <!-- Card 1: Just Salad -->
+      <div class="mini-card">
+        <div class="mini-card-header">
+          <div class="mini-logo" style="background:#e8f5f5;">
+            <span style="font-size:11px;font-weight:700;color:#00838A;">J</span>
+          </div>
+          <div>
+            <div class="mini-store-name">Just Salad</div>
+            <div class="mini-badge">-20% up to $6</div>
+          </div>
+        </div>
+        <div class="mini-imgs">
+          <div class="mini-img" style="width:38px;height:38px;left:8px;top:3px;z-index:3;">
+            <img src="https://www.figma.com/api/mcp/asset/1da35ff0-06e6-4c96-9004-602d7b5b5904" alt="" />
+          </div>
+          <div class="mini-img" style="width:34px;height:34px;left:30px;top:0;z-index:2;">
+            <img src="https://www.figma.com/api/mcp/asset/b4a0be3e-74b5-4ec4-8049-f99b82d22aae" alt="" />
+          </div>
+          <div class="mini-img" style="width:38px;height:38px;left:52px;top:3px;z-index:1;">
+            <img src="https://www.figma.com/api/mcp/asset/09cdd465-8607-4e3d-9019-a877cc3a081c" alt="" />
+          </div>
+        </div>
+        <button class="mini-btn">Order again</button>
+      </div>
+
+      <!-- Card 2: Sweetgreen -->
+      <div class="mini-card">
+        <div class="mini-card-header">
+          <div class="mini-logo" style="background:#e6f4ea;">
+            <span style="font-size:11px;font-weight:700;color:#2e7d32;">S</span>
+          </div>
+          <div>
+            <div class="mini-store-name">Sweetgreen</div>
+            <div class="mini-badge">-20% up to $6</div>
+          </div>
+        </div>
+        <div class="mini-imgs">
+          <div class="mini-img" style="width:38px;height:38px;left:8px;top:3px;z-index:3;">
+            <img src="https://www.figma.com/api/mcp/asset/7ede07e9-8ac0-4091-8b01-37c97ef4ff15" alt="" />
+          </div>
+          <div class="mini-img" style="width:34px;height:34px;left:30px;top:0;z-index:2;">
+            <img src="https://www.figma.com/api/mcp/asset/8c71cb84-2c4e-444e-be6d-66d32a3e043b" alt="" />
+          </div>
+          <div class="mini-img" style="width:38px;height:38px;left:52px;top:3px;z-index:1;">
+            <img src="https://www.figma.com/api/mcp/asset/49c5c368-92b7-490d-90c6-c8d4c5f91023" alt="" />
+          </div>
+        </div>
+        <button class="mini-btn">Order again</button>
+      </div>
+
+      <!-- Card 3: Mixt -->
+      <div class="mini-card">
+        <div class="mini-card-header">
+          <div class="mini-logo" style="background:#ede7f6;">
+            <span style="font-size:11px;font-weight:700;color:#6a3fbf;">M</span>
+          </div>
+          <div>
+            <div class="mini-store-name">Mixt</div>
+            <div class="mini-badge">-20% up to $6</div>
+          </div>
+        </div>
+        <div class="mini-imgs">
+          <div class="mini-img" style="width:38px;height:38px;left:8px;top:3px;z-index:3;">
+            <img src="https://www.figma.com/api/mcp/asset/09cdd465-8607-4e3d-9019-a877cc3a081c" alt="" />
+          </div>
+          <div class="mini-img" style="width:34px;height:34px;left:30px;top:0;z-index:2;">
+            <img src="https://www.figma.com/api/mcp/asset/432f1ed1-f170-4d08-adcd-59b8e7b948c0" alt="" />
+          </div>
+          <div class="mini-img" style="width:38px;height:38px;left:52px;top:3px;z-index:1;">
+            <img src="https://www.figma.com/api/mcp/asset/b3f37a08-9888-4f37-b818-014cf7f3e505" alt="" />
+          </div>
+        </div>
+        <button class="mini-btn">Order again</button>
+      </div>
+
+    </div>
+
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+
+    <!-- Something New -->
+    <div class="section-row">
+      <span class="section-title">Something New</span>
+    </div>
+
+
+    <!-- ════ AI SALAD PANEL ════ -->
+    <div class="ai-panel">
+
+      <!-- Restaurant 1: Evergreens -->
+      <p class="ai-reason"><strong>Best for build-your-own salads</strong> with big portions:</p>
+
+      <div class="hero-img">
+        <img src="https://www.figma.com/api/mcp/asset/09cdd465-8607-4e3d-9019-a877cc3a081c" alt="Evergreens" />
+      </div>
+
+      <div class="store-meta">
+        <div class="store-name-lg">Evergreens</div>
+        <div class="store-row2">
+          <span class="rating-num">4.7</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#191919" style="margin:0 1px">
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+          </svg>
+          <span class="meta-text">(431)</span>
+          <span class="dot">·</span>
+          <span class="meta-text">28 min</span>
+          <span class="dot">·</span>
+          <span class="meta-text">1.2 mi</span>
+        </div>
+      </div>
+
+      <div class="item-strip">
+        <div class="dish-item">
+          <div class="dish-thumb">
+            <img src="https://www.figma.com/api/mcp/asset/432f1ed1-f170-4d08-adcd-59b8e7b948c0" alt="" />
+          </div>
+          <div class="dish-info">
+            <div class="dish-name">Design a salad</div>
+            <div class="dish-price">$19.99</div>
+          </div>
+          <button class="add-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="#191919" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="dish-item">
+          <div class="dish-thumb">
+            <img src="https://www.figma.com/api/mcp/asset/b4a0be3e-74b5-4ec4-8049-f99b82d22aae" alt="" />
+          </div>
+          <div class="dish-info">
+            <div class="dish-name">Kale Caesar</div>
+            <div class="dish-price">$16.99</div>
+          </div>
+          <button class="add-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="#191919" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+
+      <div class="thin-divider"></div>
+
+      <!-- Restaurant 2: Souvla -->
+      <p class="ai-reason"><strong>Best for hearty Greek salads</strong> with juicy rotisserie:</p>
+
+      <div class="hero-img">
+        <img src="https://www.figma.com/api/mcp/asset/8c71cb84-2c4e-444e-be6d-66d32a3e043b" alt="Souvla" />
+      </div>
+
+      <div class="store-meta">
+        <div class="store-name-lg">Souvla</div>
+        <div class="store-row2">
+          <span class="rating-num">4.7</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#191919" style="margin:0 1px">
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+          </svg>
+          <span class="meta-text">(431)</span>
+          <span class="dot">·</span>
+          <span class="meta-text">28 min</span>
+          <span class="dot">·</span>
+          <span class="meta-text">1.2 mi</span>
+        </div>
+      </div>
+
+      <div class="item-strip">
+        <div class="dish-item">
+          <div class="dish-thumb">
+            <img src="https://www.figma.com/api/mcp/asset/3b79ee8d-9223-4117-806e-aa64f5066be3" alt="" />
+          </div>
+          <div class="dish-info">
+            <div class="dish-name">Chicken Salad</div>
+            <div class="dish-price">$17.00</div>
+          </div>
+          <button class="add-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="#191919" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="dish-item">
+          <div class="dish-thumb">
+            <img src="https://www.figma.com/api/mcp/asset/7ede07e9-8ac0-4091-8b01-37c97ef4ff15" alt="" />
+          </div>
+          <div class="dish-info">
+            <div class="dish-name">Lamb Bowl</div>
+            <div class="dish-price">$18.50</div>
+          </div>
+          <button class="add-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="#191919" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+
+      <div class="thin-divider"></div>
+
+      <!-- Restaurant 3: Ben's Fast Food -->
+      <p class="ai-reason"><strong>Best for a good value</strong> and large portions:</p>
+
+      <div class="hero-img">
+        <img src="https://www.figma.com/api/mcp/asset/49c5c368-92b7-490d-90c6-c8d4c5f91023" alt="Ben's Fast Food" />
+      </div>
+
+      <div class="store-meta">
+        <div class="store-name-lg">Ben's Fast Food</div>
+        <div class="store-row2">
+          <span class="rating-num">4.7</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#191919" style="margin:0 1px">
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+          </svg>
+          <span class="meta-text">(431)</span>
+          <span class="dot">·</span>
+          <span class="meta-text">28 min</span>
+          <span class="dot">·</span>
+          <span class="meta-text">1.2 mi</span>
+        </div>
+      </div>
+
+      <div class="item-strip">
+        <div class="dish-item">
+          <div class="dish-thumb">
+            <img src="https://www.figma.com/api/mcp/asset/45356737-819d-498b-98aa-1ebb4a587ad4" alt="" />
+          </div>
+          <div class="dish-info">
+            <div class="dish-name">Chicken Salad</div>
+            <div class="dish-price">$10.99</div>
+          </div>
+          <button class="add-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="#191919" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="dish-item">
+          <div class="dish-thumb">
+            <img src="https://www.figma.com/api/mcp/asset/b3f37a08-9888-4f37-b818-014cf7f3e505" alt="" />
+          </div>
+          <div class="dish-info">
+            <div class="dish-name">Veggie Bowl</div>
+            <div class="dish-price">$9.49</div>
+          </div>
+          <button class="add-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="#191919" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Refine chips -->
+      <div class="refine-section">
+        <div class="thin-divider" style="margin:0 0 12px;"></div>
+        <p class="refine-label">
+          Is there a specific <strong>type of salad</strong> you're in the mood for?
+        </p>
+        <div class="refine-chips">
+          <div class="chip">salad with a lot of protein</div>
+          <div class="chip">salad under $15</div>
+          <div class="chip">something healthy that isn't a salad</div>
+          <div class="chip">taco salad</div>
+        </div>
+      </div>
+
+
+
+    </div>
+    <!-- END AI PANEL -->
+
+
+    <!-- Thick divider before standard store list -->
+    <div class="thick-divider"></div>
+
+    <div style="padding:14px 16px 4px;font-size:18px;font-weight:700;color:#191919;">More results</div>
+
+    <!-- ════ STANDARD STORE LIST ════ -->
+
+    <!-- Just Salad -->
+    <div style="padding:16px 16px 0;">
+      <div class="store-card-img-wrap">
+        <img src="https://www.figma.com/api/mcp/asset/1da35ff0-06e6-4c96-9004-602d7b5b5904" alt="Just Salad" />
+        <div class="dot-pager">
+          <div class="dot-active"></div>
+          <div class="dot-inactive"></div>
+          <div class="dot-inactive"></div>
+          <div class="dot-inactive"></div>
+        </div>
+      </div>
+      <div class="store-info">
+        <div class="store-info-row1">
+          <div class="store-name-row">
+            <span class="store-name-lg2">Just Salad</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#191919" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="store-row2" style="margin-top:3px;">
+          <span style="font-size:13px;font-weight:500;color:#606060;">4.5</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#606060" style="margin:0 1px">
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+          </svg>
+          <span class="meta-text">(30k+)</span>
+          <span class="dot">·</span>
+          <span class="meta-text">2.0 mi</span>
+          <span class="dot">·</span>
+          <span class="meta-text">24 min</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
+          <span class="badge-red">20% off, up to $5</span>
+          <span class="dot">·</span>
+          <span class="sponsored">Sponsored</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tommy Thai -->
+    <div style="padding:16px 16px 0;">
+      <div class="store-card-img-wrap">
+        <img src="https://www.figma.com/api/mcp/asset/c36c9561-99d2-45e1-a81d-98994855d91f" alt="Tommy Thai" />
+        <div class="dot-pager">
+          <div class="dot-active"></div>
+          <div class="dot-inactive"></div>
+          <div class="dot-inactive"></div>
+          <div class="dot-inactive"></div>
+        </div>
+      </div>
+      <div class="store-info">
+        <div class="store-info-row1">
+          <div class="store-name-row">
+            <span class="store-name-lg2">Tommy Thai</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#191919" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="store-row2" style="margin-top:3px;">
+          <span style="font-size:13px;font-weight:500;color:#606060;">4.5</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#606060" style="margin:0 1px">
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+          </svg>
+          <span class="meta-text">(30k+)</span>
+          <span class="dot">·</span>
+          <span class="meta-text">2.0 mi</span>
+          <span class="dot">·</span>
+          <span class="meta-text">24 min</span>
+        </div>
+        <div style="margin-top:4px;">
+          <span class="badge-red">$5 off on $35+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thai Chili Cuisine -->
+    <div style="padding:16px 16px 16px;">
+      <div class="store-card-img-wrap">
+        <img src="https://www.figma.com/api/mcp/asset/83838fd5-2606-4b69-a183-4681493c7e5e" alt="Thai Chili Cuisine" />
+        <div class="dot-pager">
+          <div class="dot-active"></div>
+          <div class="dot-inactive"></div>
+          <div class="dot-inactive"></div>
+          <div class="dot-inactive"></div>
+        </div>
+      </div>
+      <div class="store-info">
+        <div class="store-info-row1">
+          <div class="store-name-row">
+            <span class="store-name-lg2">Thai Chili Cuisine</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#191919" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="store-row2" style="margin-top:3px;">
+          <span style="font-size:13px;font-weight:500;color:#606060;">4.4</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#606060" style="margin:0 1px">
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+          </svg>
+          <span class="meta-text">(10k+)</span>
+          <span class="dot">·</span>
+          <span class="meta-text">6.0 mi</span>
+          <span class="dot">·</span>
+          <span class="meta-text">49 min</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
+          <span class="badge-gray">Farther away</span>
+          <span class="badge-red">Buy 1, get 1 free</span>
+        </div>
+        <div style="margin-top:2px;">
+          <span class="sponsored">Sponsored</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- END SCROLL AREA -->
+
+
+  <!-- ════════════════════ TAB BAR ════════════════════ -->
+  <div class="tab-bar">
+    <div class="tab-bar-inner">
+
+      <!-- Home (active) -->
+      <div class="nav-item active">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" fill="#eb1700"/>
+        </svg>
+        <span class="nav-label">Home</span>
+      </div>
+
+      <!-- Grocery -->
+      <div class="nav-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="#494949" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="3" y1="6" x2="21" y2="6" stroke="#494949" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 10a4 4 0 01-8 0" stroke="#494949" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="nav-label">Grocery</span>
+      </div>
+
+      <!-- Retail -->
+      <div class="nav-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M6 2h12l2 7H4L6 2z" stroke="#494949" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="4" y="9" width="16" height="13" rx="1" stroke="#494949" stroke-width="1.5"/>
+          <path d="M9 13h6M9 17h4" stroke="#494949" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Retail</span>
+      </div>
+
+      <!-- Browse -->
+      <div class="nav-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="7" stroke="#494949" stroke-width="1.5"/>
+          <path d="M21 21l-4-4" stroke="#494949" stroke-width="2" stroke-linecap="round"/>
+          <path d="M8 11h6M11 8v6" stroke="#494949" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Browse</span>
+      </div>
+
+      <!-- Orders -->
+      <div class="nav-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="4" y="2" width="16" height="20" rx="2" stroke="#494949" stroke-width="1.5"/>
+          <path d="M8 7h8M8 11h8M8 15h4" stroke="#494949" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Orders</span>
+      </div>
+
+    </div>
+    <div class="home-indicator">
+      <div class="home-bar"></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
